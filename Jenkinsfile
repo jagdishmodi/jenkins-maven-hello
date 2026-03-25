@@ -1,13 +1,13 @@
 pipeline {
     agent any
 
-    
-
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/jagdishmodi/jenkins-maven-hello.git',
-                   
+                git(
+                    url: 'https://github.com/jagdishmodi/jenkins-maven-hello.git',
+                    branch: 'main'
+                )
             }
         }
 
@@ -41,15 +41,3 @@ pipeline {
 
         stage('Execute HelloWorld') {
             steps {
-                sh 'java -cp target/helloworld-1.0-SNAPSHOT.jar com.example.HelloWorld'
-            }
-        }
-    }
-
-    post {
-        always {
-            echo 'Pipeline execution completed.'
-        }
-    }
-}
-
