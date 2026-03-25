@@ -41,3 +41,14 @@ pipeline {
 
         stage('Execute HelloWorld') {
             steps {
+                sh 'java -cp target/helloworld-1.0-SNAPSHOT.jar com.example.HelloWorld'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline execution completed.'
+        }
+    }
+}
