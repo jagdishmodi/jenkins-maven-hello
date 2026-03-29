@@ -1,54 +1,60 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven3'
+        jdk 'jdk21'
+    }
+
+    environment {
+        APP_NAME = "hello-world-app"
+        DOCKER_IMAGE = "hello-world-image"
+        DOCKER_CONTAINER = "hello-world-container"
+    }
+
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
-                git(
-                    url: 'https://github.com/jagdishmodi/jenkins-maven-hello.git',
-                    branch: 'main'
-                )
+                git url: 'https://github.com/jagdishmodi/hello-world-new.git', branch: 'master'
             }
         }
 
-        stage('Build') {
+        stage('Build with Maven') {
             steps {
-                sh 'mvn -B clean compile'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn -B test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
-        stage('Package') {
+        stage('Stop Old Container') {
             steps {
-                sh 'mvn -B package'
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                }
+                sh '''
+                docker rm -f $DOCKER_CONTAINER || true
+                '''
             }
         }
 
-        stage('Execute HelloWorld') {
+        stage('Run Docker Container') {
             steps {
-                sh 'java -cp target/helloworld-1.0-SNAPSHOT.jar com.example.HelloWorld'
+                sh '''
+                docker run -d -p 8081:8080 --name $DOCKER_CONTAINER $DOCKER_IMAGE
+                '''
             }
         }
     }
 
     post {
-        always {
-            echo 'Pipeline execution completed.'
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Pipeline Failed!'
         }
     }
 }
